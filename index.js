@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const admin = require("firebase-admin");
+const cors = require("cors");
 
 app.use(cors());
 var serviceAccount = require("./serviceAccountKey.json");
@@ -17,12 +18,14 @@ const cardsRef = db.ref("cards");
 // POST CREDIT CARD
 app.post("/create-card", async (req, res) => {
   try {
+    console.log("running");
     const { id, cardName, cardNumber, expirationDate, cvvNumber } = req.body;
     await cardsRef
       .child(id)
       .set({ cardName, cardNumber, expirationDate, cvvNumber });
     res.status(201).json({ message: "Credit Card created successfully" });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: error.message });
   }
 });
