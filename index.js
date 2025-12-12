@@ -2,13 +2,27 @@ const express = require("express");
 const app = express();
 const admin = require("firebase-admin");
 const cors = require("cors");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 app.use(cors());
-var serviceAccount = require("./serviceAccountKey.json");
 app.use(express.json());
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert({
+    type: process.env.FIREBASE_TYPE,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    privateKeyId: process.env.FIREBASE_PRIVATE_KEY_ID,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    clientId: process.env.FIREBASE_CLIENT_ID,
+    authUri: process.env.FIREBASE_AUTH_URI,
+    tokenUri: process.env.FIREBASE_TOKEN_URI,
+    authProviderX509CertUrl: process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+    clientX509CertUrl: process.env.FIREBASE_CLIENT_X509_CERT_URL,
+    universeDomain: process.env.FIREBASE_UNIVERSE_DOMAIN,
+  }),
   databaseURL: "https://credit-card-87c86-default-rtdb.firebaseio.com/",
 });
 
@@ -18,14 +32,12 @@ const cardsRef = db.ref("cards");
 // POST CREDIT CARD
 app.post("/create-card", async (req, res) => {
   try {
-    console.log("running");
     const { id, cardName, cardNumber, expirationDate, cvvNumber } = req.body;
     await cardsRef
       .child(id)
       .set({ cardName, cardNumber, expirationDate, cvvNumber });
     res.status(201).json({ message: "Credit Card created successfully" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: error.message });
   }
 });
